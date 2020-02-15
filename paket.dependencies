@@ -6,6 +6,8 @@ group Server
 nuget Fable.JsonProvider
     nuget FSharp.Core
 nuget Http.fs
+nuget LiteDb.FSharp
+nuget MongoDB.Driver
     nuget Saturn
     nuget Fable.Remoting.Giraffe ~> 3
 

@@ -4,3 +4,5 @@ Saturn
 Fable.Remoting.Giraffe
 Fable.JsonProvider
 Http.fs
+LiteDb.FSharp
+MongoDB.Driver

@@ -9,6 +9,7 @@ open System
 open Fable.Remoting.Server
 open Fable.Remoting.Giraffe
 open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.Logging
 
 let tryGetEnv = System.Environment.GetEnvironmentVariable >> function null | "" -> None | x -> Some x
 
@@ -28,6 +29,11 @@ let webApp =
     |> Remoting.fromValue galateaApi
     |> Remoting.buildHttpHandler
 
+let configureLogging (builder : ILoggingBuilder) =
+    builder
+           .AddConsole()
+           .AddDebug()
+    |> ignore
 
 let configureApp (app : IApplicationBuilder) =
     app.UseDefaultFiles () |> ignore
@@ -36,7 +42,7 @@ let configureApp (app : IApplicationBuilder) =
 
 let configureServices (services : IServiceCollection) =
     services.AddGiraffe() |> ignore
-    services.AddHostedService<NpData.CustomHostedService>() |> ignore
+    services.AddHostedService<NpData.DataFetchingService>() |> ignore
 
 [<EntryPoint>]
 let main _ =
@@ -45,6 +51,7 @@ let main _ =
         .Configure(Action<IApplicationBuilder> configureApp)
         .ConfigureServices(configureServices)
         .UseUrls("http://0.0.0.0:" + port.ToString() + "/")
+        .ConfigureLogging(configureLogging)
         .Build()
         .Run()
     0
