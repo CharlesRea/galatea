@@ -3,7 +3,9 @@ group Server
     framework: auto-detect
     storage: none
 
+nuget Fable.JsonProvider
     nuget FSharp.Core
+nuget Http.fs
     nuget Saturn
     nuget Fable.Remoting.Giraffe ~> 3
 
@@ -17,6 +19,7 @@ group Client
     nuget Fable.Elmish.Debugger ~> 3
     nuget Fable.Elmish.HMR ~> 4
     nuget Fable.Elmish.React ~> 3
+nuget Fable.JsonProvider
     nuget Fable.React ~> 5
     nuget Fable.Remoting.Client ~> 5
 nuget Zanaptak.TypedCssClasses

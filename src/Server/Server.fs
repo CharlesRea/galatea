@@ -1,15 +1,14 @@
 open System.IO
-open System.Threading.Tasks
 
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.DependencyInjection
-open FSharp.Control.Tasks.V2
 open Giraffe
-open Saturn
 open Shared
 
+open System
 open Fable.Remoting.Server
 open Fable.Remoting.Giraffe
+open Microsoft.AspNetCore.Hosting
 
 let tryGetEnv = System.Environment.GetEnvironmentVariable >> function null | "" -> None | x -> Some x
 
@@ -19,22 +18,33 @@ let port =
     "SERVER_PORT"
     |> tryGetEnv |> Option.map uint16 |> Option.defaultValue 8085us
 
-let counterApi = {
+let galateaApi: IGalateaApi = {
     initialCounter = fun () -> async { return { Value = 42 } }
 }
 
 let webApp =
     Remoting.createApi()
     |> Remoting.withRouteBuilder Route.builder
-    |> Remoting.fromValue counterApi
+    |> Remoting.fromValue galateaApi
     |> Remoting.buildHttpHandler
 
-let app = application {
-    url ("http://0.0.0.0:" + port.ToString() + "/")
-    use_router webApp
-    memory_cache
-    use_static publicPath
-    use_gzip
-}
 
-run app
+let configureApp (app : IApplicationBuilder) =
+    app.UseDefaultFiles () |> ignore
+    app.UseStaticFiles () |> ignore
+    app.UseGiraffe webApp
+
+let configureServices (services : IServiceCollection) =
+    services.AddGiraffe() |> ignore
+    services.AddHostedService<NpData.CustomHostedService>() |> ignore
+
+[<EntryPoint>]
+let main _ =
+    WebHostBuilder()
+        .UseKestrel()
+        .Configure(Action<IApplicationBuilder> configureApp)
+        .ConfigureServices(configureServices)
+        .UseUrls("http://0.0.0.0:" + port.ToString() + "/")
+        .Build()
+        .Run()
+    0

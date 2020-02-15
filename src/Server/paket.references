@@ -1,4 +1,6 @@
 group Server
-    FSharp.Core
-    Saturn
-    Fable.Remoting.Giraffe
+FSharp.Core
+Saturn
+Fable.Remoting.Giraffe
+Fable.JsonProvider
+Http.fs

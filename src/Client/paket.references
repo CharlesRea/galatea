@@ -6,3 +6,4 @@ Fable.Elmish.React
 Fable.Elmish.HMR
 Fable.Remoting.Client
 Zanaptak.TypedCssClasses
+Fable.JsonProvider
