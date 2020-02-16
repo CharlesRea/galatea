@@ -5,6 +5,7 @@ open Elmish.React
 open Fable.React
 open Fable.React.Props
 open Thoth.Json
+open Layout
 
 open Fable.React.ReactiveComponents
 open Shared
@@ -29,12 +30,14 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     | _ -> model, Cmd.none
 
 let view (model : Model) (dispatch : Msg -> unit) =
-    div [] [
-        match model.Page with
-        | NewsfeedModel model ->
-            yield Newsfeed.render { Model = model; Dispatch = (NewsfeedMsg >> dispatch) }
-        | NotFoundModel ->
-            yield div [] [ str "The page is not available." ]
+    layout [
+        div [] [
+            match model.Page with
+            | NewsfeedModel model ->
+                yield Newsfeed.render { Model = model; Dispatch = (NewsfeedMsg >> dispatch) }
+            | NotFoundModel ->
+                yield div [] [ str "The page is not available." ]
+        ]
     ]
 
 #if DEBUG
