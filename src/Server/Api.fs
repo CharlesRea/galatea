@@ -1,64 +1,50 @@
 module Api
 
 open System
-open HttpFs.Logging
 open System.Collections.Generic
 open MongoDB.Driver
+open Shared
 
-let getSnapshots (): Snapshot.Data seq =
-    Snapshot.collection.Find(fun _ -> true).ToList() |> seq
-
-type NewsfeedPlayerEntry = {
-    name: string
-    events: string list
-}
-
-type NewsfeedTick = {
-    players: NewsfeedPlayerEntry list
-    tick: int
-    time: DateTimeOffset
-}
-
-type Newsfeed = {
-    ticks: NewsfeedTick list
-}
-
-let getTechEvents (tech: Dictionary<string, Snapshot.Tech>) (prevTech: Dictionary<string, Snapshot.Tech>) =
+let getResearchEvents (tech: Dictionary<string, Snapshot.Tech>) (prevTech: Dictionary<string, Snapshot.Tech>) =
     tech
     |> Seq.map (fun pair -> (pair.Key, pair.Value))
     |> Seq.map (fun (name, tech) -> (name, tech.level, prevTech.Item(name).level))
     |> Seq.filter (fun (_, level, prevLevel) -> not (level = prevLevel))
-    |> Seq.map (fun (name, level, prevLevel) -> sprintf "%s increased from level %d to %d" name prevLevel level)
+    |> Seq.map (fun (name, level, prevLevel) -> Research { Tech = name; Level = level; })
 
+let getCounterEvent (getValue: Snapshot.Player -> int) counter player prevPlayer  =
+    match getValue player = getValue prevPlayer with
+    | true -> None
+    | false -> Some (Counter { Counter = counter; OldValue = getValue prevPlayer; NewValue = getValue player })
 
-let getEvents (player: Snapshot.Player) (prevPlayer: Snapshot.Player): string list =
+let getCounterEvents player prevPlayer: NewsfeedEvent seq =
     [
-        if not (player.TotalEconomy = prevPlayer.TotalEconomy) then yield sprintf "Economy from %d to %d" prevPlayer.TotalEconomy player.TotalEconomy
-        if not (player.TotalIndustry = prevPlayer.TotalIndustry) then yield sprintf "Industry from %d to %d" prevPlayer.TotalIndustry player.TotalIndustry
-        if not (player.TotalScience = prevPlayer.TotalScience) then yield sprintf "Science from %d to %d" prevPlayer.TotalScience player.TotalScience
-        if not (player.TotalStars = prevPlayer.TotalStars) then yield sprintf "Stars from %d to %d" prevPlayer.TotalStars player.TotalStars
-        if not (player.TotalStrength = prevPlayer.TotalStrength) then yield sprintf "Ships from %d to %d" prevPlayer.TotalStrength player.TotalStrength
-        yield! getTechEvents player.Tech prevPlayer.Tech
+        getCounterEvent (fun player -> player.TotalEconomy) Economy;
+        getCounterEvent (fun player -> player.TotalIndustry) Industry;
+        getCounterEvent (fun player -> player.TotalScience) Science;
+        getCounterEvent (fun player -> player.TotalStars) Stars;
+        getCounterEvent (fun player -> player.TotalStrength) Ships;
+    ] |> Seq.map (fun getCounter -> getCounter player prevPlayer) |> Seq.choose id
+
+let getEvents (player: Snapshot.Player) (prevPlayer: Snapshot.Player): NewsfeedEvent list =
+    [
+        yield! getCounterEvents player prevPlayer;
+        yield! getResearchEvents player.Tech prevPlayer.Tech
     ]
 
 let getNewsfeedTick (snapshot: Snapshot.Data, prevSnapshot: Snapshot.Data): NewsfeedTick =
     let players = snapshot.Players.Values
                   |> Seq.zip prevSnapshot.Players.Values
-                  |> Seq.map (fun (player, prevPlayer) -> { name = player.Alias; events = getEvents player prevPlayer })
-                  |> Seq.filter (fun (player) -> not (Seq.isEmpty player.events))
+                  |> Seq.map (fun (player, prevPlayer) -> { Name = player.Alias; Events = getEvents player prevPlayer })
+                  |> Seq.filter (fun (player) -> not (Seq.isEmpty player.Events))
                   |> Seq.toList
-    { tick = snapshot.Tick; players = players; time = DateTimeOffset.FromUnixTimeMilliseconds(snapshot.Now) }
+    { Tick = snapshot.Tick; Players = players; Time = DateTimeOffset.FromUnixTimeMilliseconds(snapshot.Now) }
 
 let getNewsfeed (): Newsfeed =
-    let snapshots = getSnapshots ()
+    let snapshots = Snapshot.collection.Find(fun _ -> true).ToList()
     let ticks = snapshots |> Seq.distinctBy (fun snapshot -> snapshot.Tick) |> Seq.pairwise |> (Seq.map getNewsfeedTick) |> Seq.toList
-    { ticks = ticks }
+    { Ticks = ticks }
 
-type IApi =
-    { snapshots: unit -> Async<Snapshot.Data seq>
-      newsfeed: unit -> Async<Newsfeed> }
-
-let api: IApi = {
-    snapshots = fun () -> async { return getSnapshots () }
+let galateaApi: IGalateaApi = {
     newsfeed = fun () -> async { return getNewsfeed () }
 }

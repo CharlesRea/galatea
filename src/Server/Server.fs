@@ -21,19 +21,15 @@ let port =
     |> tryGetEnv |> Option.map uint16 |> Option.defaultValue 8085us
 
 let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =
-    // do some logging
-    printfn "Error at %s on method %s" routeInfo.path routeInfo.methodName
-    // decide whether or not you want to propagate the error to the client
-    match ex with
-    | ex ->
-        Propagate ex
-
+    let logger = routeInfo.httpContext.RequestServices.GetService<ILogger>()
+    logger.LogError(ex, (sprintf "Error at %s on method %s" routeInfo.path routeInfo.methodName))
+    Propagate ex
 
 let webApp =
     Remoting.createApi()
     |> Remoting.withRouteBuilder Route.builder
     |> Remoting.withErrorHandler errorHandler
-    |> Remoting.fromValue Api.api
+    |> Remoting.fromValue Api.galateaApi
     |> Remoting.buildHttpHandler
 
 let configureLogging (builder : ILoggingBuilder) =
