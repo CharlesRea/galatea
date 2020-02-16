@@ -39,13 +39,3 @@ type Data = {
 let mongoClient = MongoClient("mongodb://root:supersecure@localhost:27017")
 let mongoDb = mongoClient.GetDatabase("galatea")
 let collection = mongoDb.GetCollection<Data>("api-data")
-
-let getSnapshots (): Data seq =
-    collection.Find(fun _ -> true).ToList() |> seq
-
-type IGalateaApi =
-    { snapshots: unit -> Async<Data seq> }
-
-let galateaApi: IGalateaApi = {
-    snapshots = fun () -> async { return getSnapshots () }
-}

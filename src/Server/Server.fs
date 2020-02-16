@@ -33,7 +33,7 @@ let webApp =
     Remoting.createApi()
     |> Remoting.withRouteBuilder Route.builder
     |> Remoting.withErrorHandler errorHandler
-    |> Remoting.fromValue Snapshot.galateaApi
+    |> Remoting.fromValue Api.api
     |> Remoting.buildHttpHandler
 
 let configureLogging (builder : ILoggingBuilder) =
