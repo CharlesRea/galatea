@@ -31,13 +31,11 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
 
 let view (model : Model) (dispatch : Msg -> unit) =
     layout [
-        div [] [
-            match model.Page with
-            | NewsfeedModel model ->
-                yield Newsfeed.render { Model = model; Dispatch = (NewsfeedMsg >> dispatch) }
-            | NotFoundModel ->
-                yield div [] [ str "The page is not available." ]
-        ]
+        match model.Page with
+        | NewsfeedModel model ->
+            yield Newsfeed.render { Model = model; Dispatch = (NewsfeedMsg >> dispatch) }
+        | NotFoundModel ->
+            yield div [] [ str "The page is not available." ]
     ]
 
 #if DEBUG
