@@ -42,7 +42,12 @@ let getNewsfeedTick (snapshot: Snapshot.Data, prevSnapshot: Snapshot.Data): News
 
 let getNewsfeed (): Newsfeed =
     let snapshots = Snapshot.collection.Find(fun _ -> true).ToList()
-    let ticks = snapshots |> Seq.distinctBy (fun snapshot -> snapshot.Tick) |> Seq.pairwise |> (Seq.map getNewsfeedTick) |> Seq.toList
+    let ticks = snapshots
+                |> Seq.distinctBy (fun snapshot -> snapshot.Tick)
+                |> Seq.sortBy (fun snapshot -> snapshot.Tick)
+                |> Seq.pairwise
+                |> (Seq.map getNewsfeedTick)
+                |> Seq.toList
     { Ticks = ticks }
 
 let galateaApi: IGalateaApi = {

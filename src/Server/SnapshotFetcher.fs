@@ -7,13 +7,20 @@ open System.Threading.Tasks
 open Hopac
 open Microsoft.Extensions.Logging
 open Newtonsoft.Json
+open Newtonsoft.Json.Serialization
+
+let contractResolver = DefaultContractResolver()
+contractResolver.NamingStrategy <- SnakeCaseNamingStrategy()
+let jsonOptions = JsonSerializerSettings()
+jsonOptions.ContractResolver <- contractResolver
 
 let fetchSnapshot (logger: ILogger) =
     let response =
         Request.createUrl Get "http://nptriton.cqproject.net/game/5515700417069056/full"
         |> Request.responseAsString
         |> run
-    let parsedResponse = JsonConvert.DeserializeObject<Snapshot.Data>(response)
+
+    let parsedResponse = JsonConvert.DeserializeObject<Snapshot.Data>(response, jsonOptions)
     Snapshot.collection.InsertOne(parsedResponse) |> ignore
     logger.LogInformation("Got data from NP API")
 
