@@ -9,6 +9,7 @@ open System
 open Fable.Remoting.Server
 open Fable.Remoting.Giraffe
 open Microsoft.AspNetCore.Hosting
+open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Logging
 
 let tryGetEnv = System.Environment.GetEnvironmentVariable >> function null | "" -> None | x -> Some x
@@ -19,14 +20,20 @@ let port =
     "SERVER_PORT"
     |> tryGetEnv |> Option.map uint16 |> Option.defaultValue 8085us
 
-let galateaApi: IGalateaApi = {
-    initialCounter = fun () -> async { return { Value = 42 } }
-}
+let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =
+    // do some logging
+    printfn "Error at %s on method %s" routeInfo.path routeInfo.methodName
+    // decide whether or not you want to propagate the error to the client
+    match ex with
+    | ex ->
+        Propagate ex
+
 
 let webApp =
     Remoting.createApi()
     |> Remoting.withRouteBuilder Route.builder
-    |> Remoting.fromValue galateaApi
+    |> Remoting.withErrorHandler errorHandler
+    |> Remoting.fromValue Snapshot.galateaApi
     |> Remoting.buildHttpHandler
 
 let configureLogging (builder : ILoggingBuilder) =
@@ -42,7 +49,7 @@ let configureApp (app : IApplicationBuilder) =
 
 let configureServices (services : IServiceCollection) =
     services.AddGiraffe() |> ignore
-    services.AddHostedService<NpData.DataFetchingService>() |> ignore
+    services.AddHostedService<NpData.SnapshotFetcher>() |> ignore
 
 [<EntryPoint>]
 let main _ =

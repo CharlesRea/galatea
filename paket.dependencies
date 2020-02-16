@@ -3,9 +3,10 @@ group Server
     framework: auto-detect
     storage: none
 
-nuget Fable.JsonProvider
     nuget FSharp.Core
+nuget FSharp.Data
 nuget Http.fs
+nuget LiteDb 4.1.4
 nuget LiteDb.FSharp
 nuget MongoDB.Driver
     nuget Saturn
