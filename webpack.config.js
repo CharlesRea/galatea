@@ -17,7 +17,7 @@ var CONFIG = {
     // See https://github.com/jantimon/html-webpack-plugin
     indexHtmlTemplate: './src/Client/index.html',
     fsharpEntry: './src/Client/Client.fsproj',
-    cssEntry: './src/Client/style.scss',
+    cssEntry: './src/Client/css/style.css',
     outputDir: './src/Client/deploy',
     assetsDir: './src/Client/public',
     devServerPort: 8080,
@@ -91,7 +91,7 @@ module.exports = {
     // Besides the HtmlPlugin, we use the following plugins:
     // PRODUCTION
     //      - MiniCssExtractPlugin: Extracts CSS from bundle to a different file
-    //          To minify CSS, see https://github.com/webpack-contrib/mini-css-extract-plugin#minimizing-for-production    
+    //          To minify CSS, see https://github.com/webpack-contrib/mini-css-extract-plugin#minimizing-for-production
     //      - CopyWebpackPlugin: Copies static assets to output directory
     // DEVELOPMENT
     //      - HotModuleReplacementPlugin: Enables hot reloading when code changes without refreshing
@@ -141,20 +141,12 @@ module.exports = {
                 },
             },
             {
-                test: /\.(sass|scss|css)$/,
+                test: /\.css$/,
                 use: [
-                    isProduction
-                        ? MiniCssExtractPlugin.loader
-                        : 'style-loader',
-                    'css-loader',
-                    {
-                        loader: 'resolve-url-loader',
-                    },
-                    {
-                      loader: 'sass-loader',
-                      options: { implementation: require('sass') }
-                    }
-                ],
+                  'style-loader',
+                  { loader: 'css-loader', options: { importLoaders: 1 } },
+                  'postcss-loader'
+                ]
             },
             {
                 test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)(\?.*)?$/,

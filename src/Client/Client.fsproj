@@ -7,7 +7,7 @@
     <ItemGroup>
         <None Include="index.html" />
         <None Include="paket.references" />
-        <None Include="style.scss" />
+        <None Include="css\**\*.css" />
         <Compile Include="..\Shared\Shared.fs" />
         <Compile Include="Version.fs" />
         <Compile Include="Types.fs" />
@@ -15,6 +15,9 @@
         <Compile Include="Api.fs" />
         <Compile Include="Pages\Newsfeed.fs" />
         <Compile Include="Client.fs" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="css\style.css" />
     </ItemGroup>
     <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

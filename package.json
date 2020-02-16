@@ -2,7 +2,8 @@
     "private": true,
     "scripts": {
         "start": "webpack-dev-server",
-        "build": "webpack"
+        "build": "webpack",
+        "css": "tailwind build src/client/style.css -o src/client/css/tailwind-generated.css"
     },
     "devDependencies": {
         "@babel/core": "^7.6.4",
@@ -34,5 +35,9 @@
         "webpack-cli": "^3.3.9",
         "webpack-dev-server": "^3.8.2",
         "whatwg-fetch": "^3.0.0"
+    },
+    "dependencies": {
+        "postcss-loader": "3.0.0",
+        "tailwindcss": "1.2.0"
     }
 }

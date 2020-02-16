@@ -6,6 +6,7 @@ open Elmish
 open Fable.React
 open Api
 open Client
+open Fable.React.Props
 open Utils
 
 type Model =
@@ -35,5 +36,5 @@ let render = elmishView "Newsfeed" (fun { Model = model; Dispatch = dispatch } -
     | Loading -> str "Loading"
     | Error error -> str "Error"
     | Body newsfeed ->
-        div [] [ str "Loaded" ]
+        div [ClassNames [tailwind.shadowLg; tailwind.roundedLg]] [ str "Loaded" ]
 )
