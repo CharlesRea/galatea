@@ -22,6 +22,8 @@ group Client
     nuget Fable.Elmish.Debugger ~> 3
     nuget Fable.Elmish.HMR ~> 4
     nuget Fable.Elmish.React ~> 3
+nuget Fable.FontAwesome
+nuget Fable.FontAwesome.Free
 nuget Fable.JsonProvider
     nuget Fable.React ~> 5
     nuget Fable.Remoting.Client ~> 5

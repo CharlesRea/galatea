@@ -7,3 +7,5 @@ Fable.Elmish.HMR
 Fable.Remoting.Client
 Zanaptak.TypedCssClasses
 Fable.JsonProvider
+Fable.FontAwesome
+Fable.FontAwesome.Free

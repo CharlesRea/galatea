@@ -3,12 +3,10 @@ module Client
 open Elmish
 open Elmish.React
 open Fable.React
-open Fable.React.Props
-open Thoth.Json
 open Layout
+open Fable.Core.JsInterop
 
-open Fable.React.ReactiveComponents
-open Shared
+importAll "@fortawesome/fontawesome-free/css/all.css"
 
 type PageModel =
     | NewsfeedModel of Newsfeed.Model

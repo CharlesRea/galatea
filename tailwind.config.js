@@ -2,6 +2,11 @@ module.exports = {
   theme: {
     extend: {},
   },
-  variants: {},
+  variants: {
+    rounded: ['first', 'last'],
+    borderRadius: ['first', 'last'],
+    borderWidth: ['focus'],
+    padding: ['focus']
+  },
   plugins: [],
 }
