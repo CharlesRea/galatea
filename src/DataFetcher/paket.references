@@ -1,0 +1,7 @@
+group Server
+FSharp.Core
+Saturn
+Fable.Remoting.Giraffe
+Http.fs
+MongoDB.Driver
+FSharp.Data

@@ -6,8 +6,7 @@ Makes use of the [SAFE Stack](https://safe-stack.github.io/) for full-stack F# d
 Components used include:
 * [Saturn](https://saturnframework.org/docs/) - F# web server on top of ASP.NET Core
 * [Fable](https://fable.io/docs/) - F# to JS compiler
-* [Elmish](https://elmish.github.io/elmish/) - Model-View-Update architecture for state management
-* [Feliz](https://zaid-ajaj.github.io/Feliz/) - React bindings for F#
+* [Elmish](https://elmish.github.io/elmish/) - Model-View-Update architecture for state management, built on top of React
 * [Fable.Remoting](https://zaid-ajaj.github.io/Fable.Remoting/) - Type safe RPC style HTTP API calls
 
 ## Development setup
@@ -15,7 +14,9 @@ Components used include:
 ### Pre-requisites required
 * The [.NET Core SDK 3.1+](https://www.microsoft.com/net/download)
 * [FAKE 5](https://fake.build/) installed as a [global tool](https://fake.build/fake-gettingstarted.html#Install-FAKE)
-* [Yarn](https://yarnpkg.com/lang/en/docs/install/)
+  (`dotnet tool install -g fake-cli`)
+* [Paket](https://fsprojects.github.io/Paket/) installed as a global tool (`otnet tool install paket --add-source https://www.myget.org/F/paket-netcore-as-tool/api/v3/index.json -g`)
+* [Yarn v1](https://yarnpkg.com/lang/en/docs/install/)
 * [Node LTS](https://nodejs.org/en/download/)
 * If you're running on OSX or Linux, you'll also need to install [Mono](https://www.mono-project.com/docs/getting-started/install/).
 

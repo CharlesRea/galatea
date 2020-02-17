@@ -32,10 +32,10 @@ let getEvents (player: Snapshot.Player) (prevPlayer: Snapshot.Player): NewsfeedE
         yield! getResearchEvents player.Tech prevPlayer.Tech
     ]
 
-let getNewsfeedTick (prevSnapshot: Snapshot.Snapshot, snapshot: Snapshot.Snapshot): NewsfeedTick =
+let getNewsfeedTick (snapshot: Snapshot.Snapshot, prevSnapshot: Snapshot.Snapshot): NewsfeedTick =
     let players = snapshot.Players.Values
                   |> Seq.zip prevSnapshot.Players.Values
-                  |> Seq.map (fun (prevPlayer, player) -> { Name = player.Alias; Events = getEvents player prevPlayer })
+                  |> Seq.map (fun (player, prevPlayer) -> { Name = player.Alias; Events = getEvents player prevPlayer })
                   |> Seq.filter (fun (player) -> not (Seq.isEmpty player.Events))
                   |> Seq.toList
     { Tick = snapshot.Tick; Players = players; Time = DateTimeOffset.FromUnixTimeMilliseconds(snapshot.Now) }

@@ -45,7 +45,7 @@ let configureApp (app : IApplicationBuilder) =
 
 let configureServices (services : IServiceCollection) =
     services.AddGiraffe() |> ignore
-    services.AddHostedService<NpData.SnapshotFetcher>() |> ignore
+//    services.AddHostedService<NpData.SnapshotFetcher>() |> ignore
 
 [<EntryPoint>]
 let main _ =
