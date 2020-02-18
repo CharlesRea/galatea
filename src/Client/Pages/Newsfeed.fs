@@ -116,9 +116,6 @@ let filterButton dispatch (selectedFilter: EventFilter) (filter: EventFilter) =
         span [ Class "pl-2" ] [ str label ]
     ]
 
-let playersFilter (newsfeed: Newsfeed) =
-    0
-
 let filters (model: Model) dispatch =
     div [ Class "flex items-center justify-center mb-4" ] [
         [ All; ResearchOnly; InfrastructureOnly; MetricsOnly ] |> List.map (filterButton dispatch model.EventFilter) |> ofList
@@ -142,6 +139,29 @@ let playerColour (player: NewsfeedPlayer): (string * Fa.IconOption) =
                 | _ -> Fa.Regular.Square
 
     (colour, shape)
+
+
+type PlayerCardProps = { Player: NewsfeedPlayer }
+let playerCard = elmishView "PlayerCard" (fun ({ Player = player; }: PlayerCardProps) ->
+    let (colour, shape) = playerColour player
+    div [
+        Class "bg-white text-2xl border-b-4 py-4 px-6 shadow-md flex-auto"
+        Style [ BorderColor colour ]
+    ] [
+        span [ Class "mr-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ shape ] [ ] ]
+        str player.Name
+    ]
+)
+
+type PlayerCardsProps = { Players: NewsfeedPlayer list }
+let playerCards = elmishView "PlayerCard" (fun ({ Players = players; }: PlayerCardsProps) ->
+    div [ Class "grid grid-flow-row grid-cols-4 gap-4 w-full" ] [
+        players |> List.map (fun player -> playerCard { Player = player }) |> ofList
+    ]
+)
+
+let playersFilter (newsfeed: Newsfeed) =
+    0
 
 let playerEntry newsfeed (playerEntry: NewsfeedPlayerEntry) =
     let player = newsfeed.Players.[playerEntry.PlayerId]

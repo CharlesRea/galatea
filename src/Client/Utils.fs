@@ -1,5 +1,5 @@
 [<AutoOpen>]
-module Client.Utils
+module Utils
 
 open Fable.React
 open Fable.React.Props

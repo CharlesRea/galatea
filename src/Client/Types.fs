@@ -4,7 +4,7 @@ module Types
 open Elmish
 open Zanaptak.TypedCssClasses
 
-type tailwind = CssClasses<"./css/tailwind-generated.css", Naming.CamelCase>
+type tw = CssClasses<"./css/tailwind-generated.css", Naming.CamelCase>
 
 type Remote<'response> =
     | Empty

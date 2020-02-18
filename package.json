@@ -3,7 +3,8 @@
     "scripts": {
         "start": "webpack-dev-server",
         "build": "webpack",
-        "css": "tailwind build src/client/style.css -o src/client/css/tailwind-generated.css"
+        "css": "tailwind build src/client/style.css -o src/client/css/tailwind-generated.css",
+        "storybook": "start-storybook"
     },
     "devDependencies": {
         "@babel/core": "^7.6.4",
@@ -12,6 +13,7 @@
         "@babel/preset-env": "^7.6.3",
         "@babel/runtime": "^7.6.3",
         "@fortawesome/fontawesome-free": "^5.11.2",
+        "@types/storybook__react": "5.2.1",
         "babel-loader": "^8.0.5",
         "bulma": "^0.8.0",
         "copy-webpack-plugin": "^4.6.0",
@@ -37,6 +39,7 @@
         "whatwg-fetch": "^3.0.0"
     },
     "dependencies": {
+        "@storybook/react": "5.3.13",
         "postcss-loader": "3.0.0",
         "tailwindcss": "1.2.0"
     }
