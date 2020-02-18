@@ -16,14 +16,14 @@ type EventFilter =
     | InfrastructureOnly
     | MetricsOnly
 
-type Model = { Newsfeed: Remote<Newsfeed>; EventFilter: EventFilter }
+type Model = { Newsfeed: Remote<Newsfeed>; EventFilter: EventFilter; SelectedPlayerIds: (int list) option }
 
 type Msg =
     | NewsfeedRequest of RequestMsg<unit, Newsfeed>
     | SetEventFilter of EventFilter
 
 let init() =
-    { Newsfeed = Remote.Empty; EventFilter = All }, Cmd.ofMsg (NewsfeedRequest(Initiate()))
+    { Newsfeed = Remote.Empty; EventFilter = All; SelectedPlayerIds = None }, Cmd.ofMsg (NewsfeedRequest(Initiate()))
 
 let filterEmptyTicks newsfeed =
     let ticks = newsfeed.Ticks |> List.filter (fun tick -> tick.Players |> List.isEmpty |> not)
@@ -116,6 +116,9 @@ let filterButton dispatch (selectedFilter: EventFilter) (filter: EventFilter) =
         span [ Class "pl-2" ] [ str label ]
     ]
 
+let playersFilter (newsfeed: Newsfeed) =
+    0
+
 let filters (model: Model) dispatch =
     div [ Class "flex items-center justify-center mb-4" ] [
         [ All; ResearchOnly; InfrastructureOnly; MetricsOnly ] |> List.map (filterButton dispatch model.EventFilter) |> ofList
@@ -131,38 +134,49 @@ let eventDisplay (event: NewsfeedEvent) =
         | true -> p [] [ str (sprintf "%A increased from %d to %d!" counter.Counter counter.OldValue counter.NewValue) ]
         | false -> p [] [ str (sprintf "%A dropped from %d to %d :(" counter.Counter counter.OldValue counter.NewValue) ]
 
-let playerEntry (player: NewsfeedPlayerEntry) =
+let colours = [| "#0333ff"; "#18a3c1"; "#4bbb02"; "#ffbe0e"; "#e16100"; "#c11900"; "#c12ebf"; "#6e28c3"; |]
+let playerColour (player: NewsfeedPlayer): (string * Fa.IconOption) =
+    let colour = colours.[player.Id % 8]
+    let shape = match player.Id / 8 with
+                | 0 -> Fa.Regular.Circle
+                | _ -> Fa.Regular.Square
+
+    (colour, shape)
+
+let playerEntry newsfeed (playerEntry: NewsfeedPlayerEntry) =
+    let player = newsfeed.Players.[playerEntry.PlayerId]
+    let (colour, shape) = playerColour player
     div [ Class "pb-3 last:pb-0" ] [
-        p [ Class "text-grey-700 text-base text-2xl" ] [ str player.Name ]
-        player.Events |> List.map eventDisplay |> ofList
+        p [ Class "text-gray-800 text-base text-2xl" ] [
+            span [ Class "mr-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ shape ] [ ] ]
+            str player.Name
+        ]
+        playerEntry.Events |> List.map eventDisplay |> ofList
     ]
 
-type NewsfeedTickProps = {
-    Tick: NewsfeedTick
-}
-
-let newsfeedTick = elmishView "NewsfeedEvent" (fun ({ Tick = entry }: NewsfeedTickProps) ->
+type NewsfeedTickProps = { Newsfeed: Newsfeed; Tick: NewsfeedTick }
+let newsfeedTick = elmishView "NewsfeedEvent" (fun ({ Tick = tick; Newsfeed = newsfeed }: NewsfeedTickProps) ->
     div [ Class "flex flex-col w-full bg-white rounded shadow-lg my-8" ] [
         div [ Class "flex flex-col w-full bg-white rounded shadow-lg" ] [
             div [ Class "flex flex-col w-full md:flex-row" ] [
                 div [ Class "flex flex-row justify-around p-6 font-bold leading-none text-gray-800 uppercase bg-gray-400 rounded md:flex-col md:items-center md:justify-center md:w-1/5" ] [
-                    div [ Class "md:text-5xl" ] [ str (entry.Time.ToString("HH:00")) ]
+                    div [ Class "md:text-5xl" ] [ str (tick.Time.ToString("HH:00")) ]
                 ]
                 div [ Class "p-6 font-normal text-gray-800 md:w-3/4" ] [
-                    (entry.Players |> List.map playerEntry |> ofList)
+                    (tick.Players |> List.map (playerEntry newsfeed) |> ofList)
                 ]
             ]
         ]
     ]
 )
 
-type NewsfeedDayProps = { Date: DateTime; Ticks: NewsfeedTick list }
+type NewsfeedDayProps = { Newsfeed: Newsfeed; Date: DateTime; Ticks: NewsfeedTick list }
 let newsfeedDay = elmishView "NewsfeedDay" (fun (props: NewsfeedDayProps) ->
     div [] [
         h2 [ Class "text-6xl text-gray-200 text-center" ] [ str (props.Date.ToString("dd/MM")) ]
         props.Ticks
             |> List.sortByDescending (fun tick -> tick.Tick)
-            |> List.map (fun tick -> newsfeedTick { Tick = tick })
+            |> List.map (fun tick -> newsfeedTick { Newsfeed = props.Newsfeed; Tick = tick })
             |> ofList
     ]
 )
@@ -187,6 +201,6 @@ let render = elmishView "Newsfeed" (fun { Model = model; Dispatch = dispatch } -
            newsfeed.Ticks
            |> List.sortByDescending (fun tick -> tick.Tick)
            |> List.groupBy (fun tick -> tick.Time.Date)
-           |> List.map (fun (date, ticks) -> newsfeedDay { Date = date; Ticks = ticks }) |> ofList
+           |> List.map (fun (date, ticks) -> newsfeedDay { Newsfeed = newsfeed; Date = date; Ticks = ticks }) |> ofList
        ]
 )

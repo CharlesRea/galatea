@@ -5,12 +5,23 @@ open System.Collections.Generic
 open MongoDB.Driver
 open Shared
 
+let getTechName (tech: string) =
+    match tech with
+    | "propulsion" -> "Hyperspace Range"
+    | "scanning" -> "Scanning"
+    | "terraforming" -> "Terraforming"
+    | "research" -> "Experimentation"
+    | "weapons" -> "Weapons"
+    | "banking" -> "Banking"
+    | "manufacturing" -> "Manufacturing"
+    | _ -> invalidArg "tech" ("Invalid technology name: " + tech)
+
 let getResearchEvents (tech: Dictionary<string, Snapshot.Tech>) (prevTech: Dictionary<string, Snapshot.Tech>) =
     tech
     |> Seq.map (fun pair -> (pair.Key, pair.Value))
     |> Seq.map (fun (name, tech) -> (name, tech.level, prevTech.Item(name).level))
     |> Seq.filter (fun (_, level, prevLevel) -> not (level = prevLevel))
-    |> Seq.map (fun (name, level, prevLevel) -> Research { Tech = name; Level = level; })
+    |> Seq.map (fun (name, level, prevLevel) -> Research { Tech = getTechName name; Level = level; })
 
 let getCounterEvent (getValue: Snapshot.Player -> int) counter player prevPlayer  =
     match getValue player = getValue prevPlayer with
@@ -35,20 +46,34 @@ let getEvents (player: Snapshot.Player) (prevPlayer: Snapshot.Player): NewsfeedE
 let getNewsfeedTick (prevSnapshot: Snapshot.Snapshot, snapshot: Snapshot.Snapshot): NewsfeedTick =
     let players = snapshot.Players.Values
                   |> Seq.zip prevSnapshot.Players.Values
-                  |> Seq.map (fun (prevPlayer, player) -> { Name = player.Alias; Events = getEvents player prevPlayer })
+                  |> Seq.map (fun (prevPlayer, player) -> { PlayerId = player.Uid; Events = getEvents player prevPlayer })
                   |> Seq.filter (fun (player) -> not (Seq.isEmpty player.Events))
                   |> Seq.toList
     { Tick = snapshot.Tick; Players = players; Time = DateTimeOffset.FromUnixTimeMilliseconds(snapshot.Now) }
 
 let getNewsfeed (): Newsfeed =
     let snapshots = Snapshot.collection.Find(fun _ -> true).ToList()
+    let players = snapshots
+                  |> Seq.head
+                  |> (fun snapshot -> snapshot.Players.Values)
+                  |> Seq.map (fun player ->
+                      { Id = player.Uid
+                        Name = player.Alias
+                        Stars = player.TotalStars
+                        Economy = player.TotalEconomy
+                        Industry = player.TotalIndustry
+                        Science = player.TotalScience })
+                  |> Seq.map (fun player -> (player.Id, player))
+                  |> Map.ofSeq
+
     let ticks = snapshots
                 |> Seq.distinctBy (fun snapshot -> snapshot.Tick)
                 |> Seq.sortBy (fun snapshot -> snapshot.Tick)
                 |> Seq.pairwise
                 |> (Seq.map getNewsfeedTick)
                 |> Seq.toList
-    { Ticks = ticks }
+
+    { Players = players; Ticks = ticks }
 
 let galateaApi: IGalateaApi = {
     newsfeed = fun () -> async { return getNewsfeed () }

@@ -21,7 +21,7 @@ let port =
     |> tryGetEnv |> Option.map uint16 |> Option.defaultValue 8085us
 
 let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =
-    let logger = routeInfo.httpContext.RequestServices.GetService<ILogger>()
+    let logger = routeInfo.httpContext.GetLogger("ErrorHandler")
     logger.LogError(ex, (sprintf "Error at %s on method %s" routeInfo.path routeInfo.methodName))
     Propagate ex
 

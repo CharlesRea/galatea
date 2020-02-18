@@ -23,7 +23,7 @@ type CounterEvent = {
 type NewsfeedEvent = Research of ResearchEvent | Counter of CounterEvent
 
 type NewsfeedPlayerEntry = {
-    Name: string
+    PlayerId: int
     Events: NewsfeedEvent list
 }
 
@@ -33,7 +33,17 @@ type NewsfeedTick = {
     Time: DateTimeOffset
 }
 
+type NewsfeedPlayer = {
+    Id: int
+    Name: string
+    Stars: int
+    Economy: int
+    Industry: int
+    Science: int
+}
+
 type Newsfeed = {
+    Players: Map<int, NewsfeedPlayer>
     Ticks: NewsfeedTick list
 }
 
