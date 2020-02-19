@@ -145,17 +145,23 @@ type PlayerCardProps = { Player: NewsfeedPlayer }
 let playerCard = elmishView "PlayerCard" (fun ({ Player = player; }: PlayerCardProps) ->
     let (colour, shape) = playerColour player
     div [
-        Class "bg-white text-2xl border-b-4 py-4 px-6 shadow-md flex-auto"
+        Class "w-1/4 m-4 bg-white text-2xl border-b-4 py-4 px-6 shadow-md flex flex-row justify-between"
         Style [ BorderColor colour ]
     ] [
-        span [ Class "mr-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ shape ] [ ] ]
-        str player.Name
+        div [] [
+            span [ Class "mr-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ shape ] [ ] ]
+            span [ Class "font-bold" ] [ str player.Name ]
+        ]
+        div [] [
+            str (string player.Stars)
+            span [ Class "ml-2 align-text-bottom text-yellow-600" ] [ Fa.i [ Fa.Solid.Star ] [ ] ]
+        ]
     ]
 )
 
 type PlayerCardsProps = { Players: NewsfeedPlayer list }
 let playerCards = elmishView "PlayerCard" (fun ({ Players = players; }: PlayerCardsProps) ->
-    div [ Class "grid grid-flow-row grid-cols-4 gap-4 w-full" ] [
+    div [ Class "flex flex-row flex-wrap justify-center w-full -m-4" ] [
         players |> List.map (fun player -> playerCard { Player = player }) |> ofList
     ]
 )
