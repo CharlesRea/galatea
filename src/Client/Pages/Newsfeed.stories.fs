@@ -12,9 +12,17 @@ let player: NewsfeedPlayer =
     { Id = 1
       Name = "Bob"
       Stars = 232
+      Ships = 523
       Economy = 24
       Industry = 11
-      Science = 7 }
+      Science = 7
+      Scanning = 2
+      HyperspaceRange = 3
+      Terraforming = 5
+      Experimentation = 3
+      Weapons = 11
+      Banking = 3
+      Manufacturing = 2 }
 
 let players = seq { 1..14 } |> Seq.map (fun i -> { player with Id = i; Name = "Player " + i.ToString(); }) |> List.ofSeq
 

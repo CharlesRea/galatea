@@ -37,9 +37,17 @@ type NewsfeedPlayer = {
     Id: int
     Name: string
     Stars: int
+    Ships: int
     Economy: int
     Industry: int
     Science: int
+    Scanning: int
+    HyperspaceRange: int
+    Terraforming: int
+    Experimentation: int
+    Weapons: int
+    Banking: int
+    Manufacturing: int
 }
 
 type Newsfeed = {

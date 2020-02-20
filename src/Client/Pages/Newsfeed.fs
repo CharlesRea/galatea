@@ -6,7 +6,6 @@ open Types
 open Elmish
 open Fable.React
 open Api
-open Client
 open Fable.React.Props
 open Fable.FontAwesome
 
@@ -145,23 +144,54 @@ type PlayerCardProps = { Player: NewsfeedPlayer }
 let playerCard = elmishView "PlayerCard" (fun ({ Player = player; }: PlayerCardProps) ->
     let (colour, shape) = playerColour player
     div [
-        Class "w-1/4 m-4 bg-white text-2xl border-b-4 py-4 px-6 shadow-md flex flex-row justify-between"
+        Class "w-1/4 m-4 bg-white text-2xl border-b-4 py-4 px-6 shadow-md"
         Style [ BorderColor colour ]
     ] [
-        div [] [
-            span [ Class "mr-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ shape ] [ ] ]
-            span [ Class "font-bold" ] [ str player.Name ]
+        div [ Class "flex flex-row justify-between" ] [
+            div [] [
+                span [ Class "mr-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ shape ] [ ] ]
+                span [ Class "font-bold" ] [ str player.Name ]
+            ]
+            div [] [
+                str (string player.Stars)
+                span [ Class "ml-2 align-text-bottom text-yellow-600" ] [ Fa.i [ Fa.Solid.Star ] [ ] ]
+                span [ Class "ml-4" ] [ str (string player.Ships) ]
+                span [ Class "ml-2 align-text-bottom text-blue-500" ] [ Fa.i [ Fa.Solid.Rocket ] [ ] ]
+            ]
         ]
-        div [] [
-            str (string player.Stars)
-            span [ Class "ml-2 align-text-bottom text-yellow-600" ] [ Fa.i [ Fa.Solid.Star ] [ ] ]
+        div [ Class "flex flex-row justify-between text-sm" ] [
+            div [] [
+                span [ Class "" ] [ str (string player.Economy) ]
+                span [ Class "ml-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.MoneyBill ] [ ] ]
+                span [ Class "ml-3" ] [ str (string player.Industry) ]
+                span [ Class "ml-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.Industry ] [ ] ]
+                span [ Class "ml-3" ] [ str (string player.Science) ]
+                span [ Class "ml-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.GraduationCap ] [ ] ]
+            ]
+            div [] [
+                span [ Class "" ] [ str (string player.Scanning) ]
+                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.SatelliteDish; Fa.Size Fa.FaSmall ] [ ] ]
+                span [ Class "ml-3" ] [ str (string player.HyperspaceRange) ]
+                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.Ruler; Fa.Size Fa.FaSmall ] [ ] ]
+                span [ Class "ml-3" ] [ str (string player.Terraforming) ]
+                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.Tractor; Fa.Size Fa.FaSmall ] [ ] ]
+                span [ Class "ml-3" ] [ str (string player.Experimentation) ]
+                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.Flask; Fa.Size Fa.FaSmall ] [ ] ]
+                span [ Class "ml-3" ] [ str (string player.Weapons) ]
+                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.Utensils; Fa.Size Fa.FaSmall ] [ ] ]
+                span [ Class "ml-3" ] [ str (string player.Banking) ]
+                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.PiggyBank; Fa.Size Fa.FaSmall ] [ ] ]
+                span [ Class "ml-3" ] [ str (string player.Manufacturing) ]
+                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.Pallet; Fa.Size Fa.FaSmall ] [ ] ]
+
+            ]
         ]
     ]
 )
 
 type PlayerCardsProps = { Players: NewsfeedPlayer list }
 let playerCards = elmishView "PlayerCard" (fun ({ Players = players; }: PlayerCardsProps) ->
-    div [ Class "flex flex-row flex-wrap justify-center w-full -m-4" ] [
+    div [ Class "flex flex-row flex-wrap justify-center w-full -m-4 mb-8" ] [
         players |> List.map (fun player -> playerCard { Player = player }) |> ofList
     ]
 )
@@ -169,7 +199,7 @@ let playerCards = elmishView "PlayerCard" (fun ({ Players = players; }: PlayerCa
 let playersFilter (newsfeed: Newsfeed) =
     0
 
-let playerEntry newsfeed (playerEntry: NewsfeedPlayerEntry) =
+let playerEntry (newsfeed: Newsfeed) (playerEntry: NewsfeedPlayerEntry) =
     let player = newsfeed.Players.[playerEntry.PlayerId]
     let (colour, shape) = playerColour player
     div [ Class "pb-3 last:pb-0" ] [
@@ -222,11 +252,21 @@ let render = elmishView "Newsfeed" (fun { Model = model; Dispatch = dispatch } -
     | Error error -> str "Error"
     | Body newsfeed ->
        let newsfeed = filterNewsfeed newsfeed model.EventFilter
-       div [ Class "w-full" ] [
-           filters model dispatch
-           newsfeed.Ticks
-           |> List.sortByDescending (fun tick -> tick.Tick)
-           |> List.groupBy (fun tick -> tick.Time.Date)
-           |> List.map (fun (date, ticks) -> newsfeedDay { Newsfeed = newsfeed; Date = date; Ticks = ticks }) |> ofList
+       div [ Class "w-full flex flex-col items-center justify-center" ] [
+           playerCards { Players = newsfeed.Players
+                                   |> Map.toSeq
+                                   |> Seq.map snd
+                                   |> Seq.sortByDescending (fun player -> (player.Stars, player.Ships))
+                                   |> Seq.toList }
+
+           div [ Class "w-full container flex flex-col items-center justify-center" ] [
+               div [ Class "w-full" ] [
+                   filters model dispatch
+                   newsfeed.Ticks
+                   |> List.sortByDescending (fun tick -> tick.Tick)
+                   |> List.groupBy (fun tick -> tick.Time.Date)
+                   |> List.map (fun (date, ticks) -> newsfeedDay { Newsfeed = newsfeed; Date = date; Ticks = ticks }) |> ofList
+               ]
+           ]
        ]
 )

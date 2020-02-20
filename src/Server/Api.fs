@@ -54,15 +54,24 @@ let getNewsfeedTick (prevSnapshot: Snapshot.Snapshot, snapshot: Snapshot.Snapsho
 let getNewsfeed (): Newsfeed =
     let snapshots = Snapshot.collection.Find(fun _ -> true).ToList()
     let players = snapshots
+                  |> Seq.sortByDescending (fun snapshot -> snapshot.Tick)
                   |> Seq.head
                   |> (fun snapshot -> snapshot.Players.Values)
                   |> Seq.map (fun player ->
                       { Id = player.Uid
                         Name = player.Alias
                         Stars = player.TotalStars
+                        Ships = player.TotalStrength
                         Economy = player.TotalEconomy
                         Industry = player.TotalIndustry
-                        Science = player.TotalScience })
+                        Science = player.TotalScience
+                        Scanning = player.Tech.["propulsion"].level
+                        HyperspaceRange = player.Tech.["scanning"].level
+                        Terraforming = player.Tech.["terraforming"].level
+                        Experimentation = player.Tech.["research"].level
+                        Weapons = player.Tech.["weapons"].level
+                        Banking = player.Tech.["banking"].level
+                        Manufacturing = player.Tech.["manufacturing"].level })
                   |> Seq.map (fun player -> (player.Id, player))
                   |> Map.ofSeq
 
