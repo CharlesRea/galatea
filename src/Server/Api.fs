@@ -46,7 +46,7 @@ let getEvents (player: Snapshot.Player) (prevPlayer: Snapshot.Player): NewsfeedE
 let getNewsfeedTick (prevSnapshot: Snapshot.Snapshot, snapshot: Snapshot.Snapshot): NewsfeedTick =
     let players = snapshot.Players.Values
                   |> Seq.zip prevSnapshot.Players.Values
-                  |> Seq.map (fun (prevPlayer, player) -> { PlayerId = player.Uid; Events = getEvents player prevPlayer })
+                  |> Seq.map (fun (prevPlayer, player) -> { PlayerId = PlayerId player.Uid; Events = getEvents player prevPlayer })
                   |> Seq.filter (fun (player) -> not (Seq.isEmpty player.Events))
                   |> Seq.toList
     { Tick = snapshot.Tick; Players = players; Time = DateTimeOffset.FromUnixTimeMilliseconds(snapshot.Now) }
@@ -58,7 +58,7 @@ let getNewsfeed (): Newsfeed =
                   |> Seq.head
                   |> (fun snapshot -> snapshot.Players.Values)
                   |> Seq.map (fun player ->
-                      { Id = player.Uid
+                      { Id = PlayerId player.Uid
                         Name = player.Alias
                         Stars = player.TotalStars
                         Ships = player.TotalStrength

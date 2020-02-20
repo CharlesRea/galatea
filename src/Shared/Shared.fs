@@ -2,6 +2,8 @@ namespace Shared
 
 open System
 
+type PlayerId = PlayerId of int
+
 type ResearchEvent = {
     Tech: string
     Level: int
@@ -23,7 +25,7 @@ type CounterEvent = {
 type NewsfeedEvent = Research of ResearchEvent | Counter of CounterEvent
 
 type NewsfeedPlayerEntry = {
-    PlayerId: int
+    PlayerId: PlayerId
     Events: NewsfeedEvent list
 }
 
@@ -34,7 +36,7 @@ type NewsfeedTick = {
 }
 
 type NewsfeedPlayer = {
-    Id: int
+    Id: PlayerId
     Name: string
     Stars: int
     Ships: int
@@ -51,7 +53,7 @@ type NewsfeedPlayer = {
 }
 
 type Newsfeed = {
-    Players: Map<int, NewsfeedPlayer>
+    Players: Map<PlayerId, NewsfeedPlayer>
     Ticks: NewsfeedTick list
 }
 

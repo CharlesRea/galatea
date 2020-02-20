@@ -15,14 +15,15 @@ type EventFilter =
     | InfrastructureOnly
     | MetricsOnly
 
-type Model = { Newsfeed: Remote<Newsfeed>; EventFilter: EventFilter; SelectedPlayerIds: (int list) option }
+type Model = { Newsfeed: Remote<Newsfeed>; EventFilter: EventFilter; SelectedPlayers: PlayerId list }
 
 type Msg =
     | NewsfeedRequest of RequestMsg<unit, Newsfeed>
     | SetEventFilter of EventFilter
+    | SelectPlayer of PlayerId
 
 let init() =
-    { Newsfeed = Remote.Empty; EventFilter = All; SelectedPlayerIds = None }, Cmd.ofMsg (NewsfeedRequest(Initiate()))
+    { Newsfeed = Remote.Empty; EventFilter = All; SelectedPlayers = [] }, Cmd.ofMsg (NewsfeedRequest(Initiate()))
 
 let filterEmptyTicks newsfeed =
     let ticks = newsfeed.Ticks |> List.filter (fun tick -> tick.Players |> List.isEmpty |> not)
@@ -34,10 +35,35 @@ let update (msg: Msg) (model: Model): Model * Cmd<Msg> =
         { model with Newsfeed = Loading }, (Cmd.ofRequest api.newsfeed () NewsfeedRequest)
     | NewsfeedRequest(Fetched response) -> { model with Newsfeed = Body (filterEmptyTicks response) }, Cmd.none
     | NewsfeedRequest(FetchError error) -> { model with Newsfeed = Error error }, Cmd.none
+
     | SetEventFilter filter -> { model with EventFilter = filter }, Cmd.none
 
+    | SelectPlayer playerId ->
+        let players =
+            match (model.SelectedPlayers |> List.contains playerId) with
+            | true -> model.SelectedPlayers |> List.filter (fun p -> not (p = playerId))
+            | false -> playerId :: model.SelectedPlayers
+        { model with SelectedPlayers = players }, Cmd.none
 
-let filterNewsfeed (newsfeed: Newsfeed) filter =
+let filterPlayers (selectedPlayers: PlayerId list) (newsfeed: Newsfeed)  =
+    match selectedPlayers with
+    | [] -> newsfeed
+    | selectedPlayers ->
+        let filterPlayer (player: NewsfeedPlayerEntry) =
+            match selectedPlayers |> List.contains player.PlayerId with
+            | true -> Some player
+            | false -> None
+
+        let filterTick (tick: NewsfeedTick) =
+            let players = tick.Players |> List.choose filterPlayer
+            match players with
+            | [] -> None
+            | _ -> Some { tick with Players = players; }
+
+        let ticks = newsfeed.Ticks |> List.choose filterTick
+        { newsfeed with Ticks = ticks }
+
+let filterNewsfeed filter (newsfeed: Newsfeed) =
     let filterShipChanges (event: NewsfeedEvent): NewsfeedEvent option =
         match event with
         | Counter counter ->
@@ -132,20 +158,24 @@ let eventDisplay (event: NewsfeedEvent) =
 
 let colours = [| "#0333ff"; "#18a3c1"; "#4bbb02"; "#ffbe0e"; "#e16100"; "#c11900"; "#c12ebf"; "#6e28c3"; |]
 let playerColour (player: NewsfeedPlayer): (string * Fa.IconOption) =
-    let colour = colours.[player.Id % 8]
-    let shape = match player.Id / 8 with
+    let (PlayerId playerId) = player.Id
+    let colour = colours.[playerId % 8]
+    let shape = match (playerId / 8) with
                 | 0 -> Fa.Regular.Circle
                 | _ -> Fa.Regular.Square
 
     (colour, shape)
 
 
-type PlayerCardProps = { Player: NewsfeedPlayer }
-let playerCard = elmishView "PlayerCard" (fun ({ Player = player; }: PlayerCardProps) ->
+type PlayerCardProps = { Player: NewsfeedPlayer; IsSelected: bool; Dispatch: Msg -> unit }
+let playerCard = elmishView "PlayerCard" (fun ({ Player = player; IsSelected = isSelected; Dispatch = dispatch; }: PlayerCardProps) ->
     let (colour, shape) = playerColour player
+    let selectedClass = if isSelected then "border-4" else ""
+
     div [
-        Class "w-1/4 m-4 bg-white text-2xl border-b-4 py-4 px-6 shadow-md"
+        Class ("w-1/4 m-4 bg-white text-2xl border-b-4 py-4 px-6 shadow-md cursor-pointer " + selectedClass)
         Style [ BorderColor colour ]
+        OnClick (fun _ -> dispatch (SelectPlayer player.Id) )
     ] [
         div [ Class "flex flex-row justify-between" ] [
             div [] [
@@ -189,15 +219,12 @@ let playerCard = elmishView "PlayerCard" (fun ({ Player = player; }: PlayerCardP
     ]
 )
 
-type PlayerCardsProps = { Players: NewsfeedPlayer list }
-let playerCards = elmishView "PlayerCard" (fun ({ Players = players; }: PlayerCardsProps) ->
+type PlayerCardsProps = { Players: NewsfeedPlayer list; SelectedPlayers: PlayerId list; Dispatch: Msg -> unit }
+let playerCards = elmishView "PlayerCard" (fun ({ Players = players; SelectedPlayers = selectedPlayers; Dispatch = dispatch }: PlayerCardsProps) ->
     div [ Class "flex flex-row flex-wrap justify-center w-full -m-4 mb-8" ] [
-        players |> List.map (fun player -> playerCard { Player = player }) |> ofList
+        players |> List.map (fun player -> playerCard { Player = player; IsSelected = selectedPlayers |> List.contains player.Id; Dispatch = dispatch }) |> ofList
     ]
 )
-
-let playersFilter (newsfeed: Newsfeed) =
-    0
 
 let playerEntry (newsfeed: Newsfeed) (playerEntry: NewsfeedPlayerEntry) =
     let player = newsfeed.Players.[playerEntry.PlayerId]
@@ -251,13 +278,15 @@ let render = elmishView "Newsfeed" (fun { Model = model; Dispatch = dispatch } -
     | Loading -> str "Loading"
     | Error error -> str "Error"
     | Body newsfeed ->
-       let newsfeed = filterNewsfeed newsfeed model.EventFilter
+       let newsfeed = newsfeed |> filterPlayers model.SelectedPlayers |> filterNewsfeed model.EventFilter
        div [ Class "w-full flex flex-col items-center justify-center" ] [
            playerCards { Players = newsfeed.Players
                                    |> Map.toSeq
                                    |> Seq.map snd
                                    |> Seq.sortByDescending (fun player -> (player.Stars, player.Ships))
-                                   |> Seq.toList }
+                                   |> Seq.toList;
+                        SelectedPlayers = model.SelectedPlayers;
+                        Dispatch = dispatch }
 
            div [ Class "w-full container flex flex-col items-center justify-center" ] [
                div [ Class "w-full" ] [

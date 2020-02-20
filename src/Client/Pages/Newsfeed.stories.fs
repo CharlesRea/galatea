@@ -9,7 +9,7 @@ importAll "@fortawesome/fontawesome-free/css/all.css"
 importAll "../css/style.css"
 
 let player: NewsfeedPlayer =
-    { Id = 1
+    { Id = PlayerId 1
       Name = "Bob"
       Stars = 232
       Ships = 523
@@ -24,9 +24,11 @@ let player: NewsfeedPlayer =
       Banking = 3
       Manufacturing = 2 }
 
-let players = seq { 1..14 } |> Seq.map (fun i -> { player with Id = i; Name = "Player " + i.ToString(); }) |> List.ofSeq
+let players = seq { 1..14 } |> Seq.map (fun i -> { player with Id = PlayerId i; Name = "Player " + i.ToString(); }) |> List.ofSeq
+
+let dispatch msg = ()
 
 storiesOf("Newsfeed", webpackModule)
-    .add("Player card", (fun _ -> playerCard { Player = player }))
-    .add("Player cards", (fun _ -> div [ Classes [ tw.bgGray700; tw.m4 ] ] [ playerCards { Players = players } ]))
+    .add("Player card", (fun _ -> playerCard { Player = player; IsSelected = false; Dispatch = dispatch }))
+    .add("Player cards", (fun _ -> div [ Classes [ tw.bgGray700; tw.m4 ] ] [ playerCards { Players = players; SelectedPlayers = [PlayerId 2; PlayerId 4;]; Dispatch = dispatch } ]))
     |> ignore
