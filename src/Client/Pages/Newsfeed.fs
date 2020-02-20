@@ -156,7 +156,7 @@ let eventDisplay (event: NewsfeedEvent) =
         | true -> p [] [ str (sprintf "%A increased from %d to %d!" counter.Counter counter.OldValue counter.NewValue) ]
         | false -> p [] [ str (sprintf "%A dropped from %d to %d :(" counter.Counter counter.OldValue counter.NewValue) ]
 
-let colours = [| "#0333ff"; "#18a3c1"; "#4bbb02"; "#ffbe0e"; "#e16100"; "#c11900"; "#c12ebf"; "#6e28c3"; |]
+let colours = [| "blue-700"; "blue-400"; "green-600"; "yellow-500"; "orange-500"; "red-700"; "pink-500"; "purple-600"; |]
 let playerColour (player: NewsfeedPlayer): (string * Fa.IconOption) =
     let (PlayerId playerId) = player.Id
     let colour = colours.[playerId % 8]
@@ -170,49 +170,50 @@ let playerColour (player: NewsfeedPlayer): (string * Fa.IconOption) =
 type PlayerCardProps = { Player: NewsfeedPlayer; IsSelected: bool; Dispatch: Msg -> unit }
 let playerCard = elmishView "PlayerCard" (fun ({ Player = player; IsSelected = isSelected; Dispatch = dispatch; }: PlayerCardProps) ->
     let (colour, shape) = playerColour player
-    let selectedClass = if isSelected then "border-4" else ""
+    let bgClass = if isSelected then "bg-" + colour else "bg-white"
+    let textColour = if isSelected then "text-white" else "text-black"
+    let iconColour = if isSelected then "text-white" else "text-" + colour
 
     div [
-        Class ("w-1/4 m-4 bg-white text-2xl border-b-4 py-4 px-6 shadow-md cursor-pointer " + selectedClass)
-        Style [ BorderColor colour ]
+        Classes ["w-full xl:w-1/4 lg:w-1/3 m-4 text-2xl border-b-4 py-4 px-6 shadow-md cursor-pointer"; bgClass; "border-" + colour]
         OnClick (fun _ -> dispatch (SelectPlayer player.Id) )
     ] [
         div [ Class "flex flex-row justify-between" ] [
             div [] [
-                span [ Class "mr-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ shape ] [ ] ]
-                span [ Class "font-bold" ] [ str player.Name ]
+                span [ Classes ["mr-2 align-text-top"; iconColour] ] [ Fa.i [ shape ] [ ] ]
+                span [ Classes ["font-bold"; textColour] ] [ str player.Name ]
             ]
             div [] [
-                str (string player.Stars)
-                span [ Class "ml-2 align-text-bottom text-yellow-600" ] [ Fa.i [ Fa.Solid.Star ] [ ] ]
-                span [ Class "ml-4" ] [ str (string player.Ships) ]
-                span [ Class "ml-2 align-text-bottom text-blue-500" ] [ Fa.i [ Fa.Solid.Rocket ] [ ] ]
+                span [ Classes [ textColour] ] [ str (string player.Stars) ]
+                span [ Classes [ "ml-2 align-text-bottom"; if not isSelected then "text-yellow-600" else "text-white" ] ] [ Fa.i [ Fa.Solid.Star ] [ ] ]
+                span [ Classes ["ml-4"; textColour] ] [ str (string player.Ships) ]
+                span [ Classes [ "ml-2 align-text-bottom"; if not isSelected then "text-blue-500" else "text-white" ] ] [ Fa.i [ Fa.Solid.Rocket ] [ ] ]
             ]
         ]
         div [ Class "flex flex-row justify-between text-sm" ] [
             div [] [
-                span [ Class "" ] [ str (string player.Economy) ]
-                span [ Class "ml-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.MoneyBill ] [ ] ]
-                span [ Class "ml-3" ] [ str (string player.Industry) ]
-                span [ Class "ml-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.Industry ] [ ] ]
-                span [ Class "ml-3" ] [ str (string player.Science) ]
-                span [ Class "ml-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.GraduationCap ] [ ] ]
+                span [ Classes [ textColour ] ] [ str (string player.Economy) ]
+                span [ Classes [ "ml-2 align-text-top"; iconColour ] ] [ Fa.i [ Fa.Solid.MoneyBill ] [ ] ]
+                span [ Classes [ "ml-3"; textColour ] ] [ str (string player.Industry) ]
+                span [ Classes [ "ml-2 align-text-top"; iconColour ] ] [ Fa.i [ Fa.Solid.Industry ] [ ] ]
+                span [ Classes [ "ml-3"; textColour ] ] [ str (string player.Science) ]
+                span [ Classes [ "ml-2 align-text-top"; iconColour ] ] [ Fa.i [ Fa.Solid.GraduationCap ] [ ] ]
             ]
             div [] [
-                span [ Class "" ] [ str (string player.Scanning) ]
-                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.SatelliteDish; Fa.Size Fa.FaSmall ] [ ] ]
-                span [ Class "ml-3" ] [ str (string player.HyperspaceRange) ]
-                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.Ruler; Fa.Size Fa.FaSmall ] [ ] ]
-                span [ Class "ml-3" ] [ str (string player.Terraforming) ]
-                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.Tractor; Fa.Size Fa.FaSmall ] [ ] ]
-                span [ Class "ml-3" ] [ str (string player.Experimentation) ]
-                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.Flask; Fa.Size Fa.FaSmall ] [ ] ]
-                span [ Class "ml-3" ] [ str (string player.Weapons) ]
-                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.Utensils; Fa.Size Fa.FaSmall ] [ ] ]
-                span [ Class "ml-3" ] [ str (string player.Banking) ]
-                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.PiggyBank; Fa.Size Fa.FaSmall ] [ ] ]
-                span [ Class "ml-3" ] [ str (string player.Manufacturing) ]
-                span [ Class "align-text-top ml-1"; Style [ Color colour ] ] [ Fa.i [ Fa.Solid.Pallet; Fa.Size Fa.FaSmall ] [ ] ]
+                span [ Classes [ textColour ] ] [ str (string player.Scanning) ]
+                span [ Classes [ "align-text-top ml-1"; iconColour ] ] [ Fa.i [ Fa.Solid.SatelliteDish; Fa.Size Fa.FaSmall ] [ ] ]
+                span [ Classes [ "ml-3"; textColour ] ] [ str (string player.HyperspaceRange) ]
+                span [ Classes [ "align-text-top ml-1"; iconColour ] ] [ Fa.i [ Fa.Solid.Ruler; Fa.Size Fa.FaSmall ] [ ] ]
+                span [ Classes [ "ml-3"; textColour ] ] [ str (string player.Terraforming) ]
+                span [ Classes [ "align-text-top ml-1"; iconColour ] ] [ Fa.i [ Fa.Solid.Tractor; Fa.Size Fa.FaSmall ] [ ] ]
+                span [ Classes [ "ml-3"; textColour ] ] [ str (string player.Experimentation) ]
+                span [ Classes [ "align-text-top ml-1"; iconColour ] ] [ Fa.i [ Fa.Solid.Flask; Fa.Size Fa.FaSmall ] [ ] ]
+                span [ Classes [ "ml-3"; textColour ] ] [ str (string player.Weapons) ]
+                span [ Classes [ "align-text-top ml-1"; iconColour ] ] [ Fa.i [ Fa.Solid.Utensils; Fa.Size Fa.FaSmall ] [ ] ]
+                span [ Classes [ "ml-3"; textColour ] ] [ str (string player.Banking) ]
+                span [ Classes [ "align-text-top ml-1"; iconColour ] ] [ Fa.i [ Fa.Solid.PiggyBank; Fa.Size Fa.FaSmall ] [ ] ]
+                span [ Classes [ "ml-3"; textColour ] ] [ str (string player.Manufacturing) ]
+                span [ Classes [ "align-text-top ml-1"; iconColour ] ] [ Fa.i [ Fa.Solid.Pallet; Fa.Size Fa.FaSmall ] [ ] ]
 
             ]
         ]
@@ -220,7 +221,7 @@ let playerCard = elmishView "PlayerCard" (fun ({ Player = player; IsSelected = i
 )
 
 type PlayerCardsProps = { Players: NewsfeedPlayer list; SelectedPlayers: PlayerId list; Dispatch: Msg -> unit }
-let playerCards = elmishView "PlayerCard" (fun ({ Players = players; SelectedPlayers = selectedPlayers; Dispatch = dispatch }: PlayerCardsProps) ->
+let playerCards = elmishView "PlayerCards" (fun ({ Players = players; SelectedPlayers = selectedPlayers; Dispatch = dispatch }: PlayerCardsProps) ->
     div [ Class "flex flex-row flex-wrap justify-center w-full -m-4 mb-8" ] [
         players |> List.map (fun player -> playerCard { Player = player; IsSelected = selectedPlayers |> List.contains player.Id; Dispatch = dispatch }) |> ofList
     ]
@@ -231,7 +232,7 @@ let playerEntry (newsfeed: Newsfeed) (playerEntry: NewsfeedPlayerEntry) =
     let (colour, shape) = playerColour player
     div [ Class "pb-3 last:pb-0" ] [
         p [ Class "text-gray-800 text-base text-2xl" ] [
-            span [ Class "mr-2 align-text-top"; Style [ Color colour ] ] [ Fa.i [ shape ] [ ] ]
+            span [ Classes [ "mr-2 align-text-top"; "text-" + colour ] ] [ Fa.i [ shape ] [ ] ]
             str player.Name
         ]
         playerEntry.Events |> List.map eventDisplay |> ofList
